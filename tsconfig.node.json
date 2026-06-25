@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "outDir": "dist-electron",
+    "rootDir": "src",
+    "strict": true,
+    "types": ["./types"]
+  },
+  "include": ["src/electron/**/*", "src/backend/**/*", "src/shared/**/*"]
+}

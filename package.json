@@ -1,0 +1,27 @@
+{
+  "scripts": {
+    "dev:ui": "vite",
+    "watch:electron": "tsc -w -p tsconfig.node.json",
+    "dev:electron": "wait-on dist-electron/electron/main.js && electron dist-electron/electron/main.js",
+    "dev": "concurrently \"npm run dev:ui\" \"npm run watch:electron\" \"npm run dev:electron\""
+  },
+  "dependencies": {
+    "@trpc/client": "^11.18.0",
+    "@trpc/server": "^11.18.0",
+    "@vitejs/plugin-react": "^6.0.3",
+    "chokidar": "^5.0.0",
+    "concurrently": "^10.0.3",
+    "cross-env": "^10.1.0",
+    "electron": "^42.5.0",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
+    "typescript": "^6.0.3",
+    "vite": "^8.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.0.1",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "wait-on": "^9.0.10"
+  }
+}
