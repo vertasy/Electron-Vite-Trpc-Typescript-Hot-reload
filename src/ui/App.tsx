@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { trpcClient } from "./trpcClient";
+import Router from "./Router/index";
+import { Toaster } from "./components/sonner";
 
 export default function App() {
   const [result, setResult] = useState("");
@@ -19,12 +21,9 @@ export default function App() {
   }
 
   return (
-    <div>
-      <button onClick={testQuery}>Query</button>
-
-      <button onClick={testMutation}>Mutation</button>
-
-      <pre>{result}</pre>
-    </div>
+    <>
+      <Router />
+      <Toaster />
+    </>
   );
 }

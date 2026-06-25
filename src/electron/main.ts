@@ -16,6 +16,11 @@ function getWorkerPath() {
 function getPreloadPath() {
   return path.join(process.cwd(), "dist-electron", "electron", "preload.cjs");
 }
+
+function getUIPath() {
+  return path.join(process.cwd(), "dist-react", "index.html");
+}
+
 function startWorker() {
   console.log("Starting backend worker");
 
@@ -63,11 +68,14 @@ function createWindow() {
     }
   });
 
+  if (!app.isPackaged) {
+    mainWindow.loadURL("http://localhost:5173");
+    mainWindow.webContents.openDevTools();
+  } else {
+    mainWindow.loadFile(getUIPath());
+  }
   // dev
-  mainWindow.loadURL("http://localhost:5173");
-  mainWindow.webContents.openDevTools();
   // production
-  // mainWindow.loadFile(...)
 }
 
 app.whenReady().then(() => {

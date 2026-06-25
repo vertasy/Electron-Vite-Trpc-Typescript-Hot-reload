@@ -12,6 +12,6 @@ exports.appRouter = t.router({
             greeting: `Helloo ${input.name}`
         };
     }),
-    test: exports.publicProcedure.mutation(() => 12)
+    test: exports.publicProcedure.mutation(() => 22)
 });
 exports.createCaller = t.createCallerFactory(exports.appRouter);

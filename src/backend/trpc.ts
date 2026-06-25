@@ -13,7 +13,7 @@ export const appRouter = t.router({
       };
     }),
 
-  test: publicProcedure.mutation(() => 12)
+  test: publicProcedure.mutation(() => 22)
 });
 
 export const createCaller = t.createCallerFactory(appRouter);
