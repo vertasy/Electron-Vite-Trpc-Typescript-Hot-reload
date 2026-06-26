@@ -39,6 +39,7 @@ CREATE TABLE `metadata` (
 	`serverPfp` text,
 	`serverBanner` text,
 	`serverMemberCount` integer,
+	`hashedCode` text,
 	`createdAt` text DEFAULT (CURRENT_TIMESTAMP) NOT NULL,
 	`updatedAt` text DEFAULT (CURRENT_TIMESTAMP)
 );

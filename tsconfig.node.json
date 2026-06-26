@@ -17,5 +17,10 @@
     "types": ["node", "./types"]
   },
 
-  "include": ["src/electron/**/*", "src/backend/**/*", "src/shared/**/*"]
+  "include": [
+    "src/electron/**/*",
+    "src/backend/**/*",
+    "src/shared/**/*",
+    "globals.d.ts"
+  ]
 }

@@ -13,6 +13,7 @@ export const metadataTable = sqliteTable("metadata", {
   serverPfp: text(),
   serverBanner: text(),
   serverMemberCount: integer(),
+  hashedCode: text(),
   createdAt: text()
     .default(sql`(CURRENT_TIMESTAMP)`)
     .notNull(),

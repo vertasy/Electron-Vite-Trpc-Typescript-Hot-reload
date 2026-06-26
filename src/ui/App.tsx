@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { trpcClient } from "./trpcClient";
 import Router from "./Router/index";
 import { Toaster } from "./components/sonner";
@@ -21,3 +21,17 @@ export default function App() {
     </>
   );
 }
+
+// function App() {
+//   const [stage, setStage] = useState<number | null>(null);
+
+//   useEffect(() => {
+//     trpcClient.start.getStatus.query().then(setStage);
+//   }, []);
+
+//   if (stage === null) {
+//     return <h3></h3>
+//   }
+
+//   return <Router stage={stage} />;
+// }

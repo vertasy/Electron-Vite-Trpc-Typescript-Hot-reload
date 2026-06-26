@@ -5,7 +5,9 @@ import {
   ArrowRightIcon,
   Loader,
   Hash,
-  HashIcon
+  HashIcon,
+  TriangleAlert,
+  RefreshCwIcon
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -17,6 +19,7 @@ import {
   SelectValue
 } from "../../../components/select";
 import { trpcClient } from "../../../trpcClient";
+import { useNavigate } from "react-router-dom";
 
 type HeaderState = {
   title: string;
@@ -74,19 +77,24 @@ function RouteOptionCard({
   );
 }
 
-function SubmitButton({
+export function SubmitButton({
   title,
   onClick,
   isLoading,
-  back
+  back,
+  refresh,
+  disabled
 }: {
   title: string;
   onClick: () => void;
   isLoading: boolean;
   back?: boolean;
+  refresh?: boolean;
+  disabled?: boolean;
 }) {
   return (
     <button
+      disabled={disabled}
       className={`
         ${
           back
@@ -95,16 +103,21 @@ function SubmitButton({
         }
         ${isLoading ? "cursor-not-allowed" : "cursor-pointer"}
         group w-full border-border rounded-2xl py-2 px-4
-        flex items-center justify-between transition-all duration-150
+        flex items-center justify-between transition-all duration-150 disabled:cursor-not-allowed disabled:pointer-events-none disabled:opacity-50
       `}
       onClick={onClick}
-      disabled={isLoading}
+      // disabled={isLoading}
     >
-      {isLoading ? "Loading..." : title}
+      {isLoading && !refresh ? "Loading..." : title}
 
       {!back && (
         <span className="group-hover:translate-x-2 transition-all duration-150">
           {isLoading ? <Loader className="animate-spin" /> : <ArrowRightIcon />}
+        </span>
+      )}
+      {refresh && (
+        <span className="">
+          {isLoading ? <Loader className="animate-spin" /> : <RefreshCwIcon />}
         </span>
       )}
     </button>
@@ -115,15 +128,19 @@ function Input({
   type,
   placeholder,
   value,
-  onChange
+  onChange,
+  loading
 }: {
   type: string;
   placeholder: string;
   value: string;
+  loading?: boolean;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }) {
   return (
-    <div className="w-full h-12 rounded-2xl px-4 border border-border bg-muted focus-within:border-border-hover">
+    <div
+      className={`${loading ? "pointer-events-none" : ""} w-full h-12 rounded-2xl px-4 border border-border bg-muted focus-within:border-border-hover`}
+    >
       <input
         type={type}
         placeholder={placeholder}
@@ -143,51 +160,149 @@ type Channel = {
 function ChannelSelectionForm({
   onBack,
   channels,
-  setChannels,
   selectedChannel,
   setSelectedChannel
 }: {
   channels: Channel[];
-  setChannels: React.Dispatch<React.SetStateAction<Channel[]>>;
   selectedChannel: Channel | null;
   setSelectedChannel: React.Dispatch<React.SetStateAction<Channel | null>>;
-
   onBack: () => void;
 }) {
+  const navigate = useNavigate();
+  const [localChannels, setLocalChannels] = useState<Channel[] | null>(null);
+  const [refreshLoading, setRefreshLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
+  // Use refreshed channels if available, otherwise use props
+  const displayChannels = localChannels ?? channels;
+
+  const handleRefresh = async () => {
+    try {
+      setRefreshLoading(true);
+
+      const res = await trpcClient.start.refreshChannels.query();
+      if (!res) {
+        toast.error("Failed to refresh channels");
+        return;
+      }
+
+      setLocalChannels(res);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setRefreshLoading(false);
+    }
+  };
+
+  const handleSelectChannel = async () => {
+    if (!selectedChannel) {
+      toast.error("Please select a channel");
+      return;
+    }
+    try {
+      console.log(selectedChannel);
+      setLoading(true);
+
+      const res = await trpcClient.start.selecChannel.query({
+        channelId: selectedChannel.id
+      });
+      if (!res) return toast.error("Failed to select channel");
+
+      navigate("/start/code-setup");
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="flex flex-col gap-2">
       <div className="w-full">
-        <Select defaultValue={"Select a channel"}>
-          <SelectTrigger className="w-full bg-muted! h-12">
-            <SelectValue placeholder="Select a channel" />
-          </SelectTrigger>
-          <SelectContent>
-            {channels.map((channel) => (
-              <SelectItem
-                className="h-10 px-2"
-                value={channel.name}
-                key={channel.id}
-              >
-                <span>
-                  <HashIcon />
-                </span>
-                <span>{channel.name}</span>
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        {displayChannels.length === 0 ? (
+          <div className="flex flex-col gap-2 w-full">
+            <div className="border bg-muted border-amber-300 rounded-2xl px-4 py-2 flex items-center gap-2">
+              <TriangleAlert className="text-amber-300" />
+              <span>
+                Your server has no channels, please create one and refresh.
+              </span>
+            </div>
+          </div>
+        ) : (
+          <>
+            <h2 className="font-medium">Channel</h2>
+
+            <Select
+              value={selectedChannel?.id}
+              onValueChange={(value) => {
+                const channel = displayChannels.find((c) => c.id === value);
+                setSelectedChannel(channel ?? null);
+              }}
+            >
+              <SelectTrigger className="w-full h-12 bg-muted">
+                <SelectValue placeholder="Select a channel" />
+              </SelectTrigger>
+
+              <SelectContent>
+                {displayChannels.map((channel) => (
+                  <SelectItem
+                    key={channel.id}
+                    value={channel.id}
+                    className="h-10 px-2"
+                  >
+                    <HashIcon className="mr-2 h-4 w-4" />
+                    {channel.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </>
+        )}
       </div>
+
       <div className="flex gap-2">
+        <SubmitButton title="Back" onClick={onBack} isLoading={false} back />
+
         <SubmitButton
-          title="Back"
-          onClick={() => {
-            onBack();
-          }}
-          isLoading={false}
+          title=""
+          onClick={handleRefresh}
+          isLoading={refreshLoading}
+          refresh
           back
         />
 
-        <SubmitButton title="Continue" onClick={() => {}} isLoading={false} />
+        <SubmitButton
+          title="Continue"
+          disabled={displayChannels.length === 0 || !selectedChannel}
+          onClick={handleSelectChannel}
+          isLoading={false}
+        />
+      </div>
+    </div>
+  );
+}
+
+function ServerInfoCard({
+  serverInfo,
+  channels
+}: {
+  serverInfo: ServerInfo;
+  channels: Channel[];
+}) {
+  return (
+    <div className="flex flex-row gap-2 border border-border rounded-2xl p-2 mb-2 bg-muted">
+      <img src={serverInfo.serverPfp} alt="" className="w-17 h-17 rounded-xl" />
+      <div className="flex flex-col gap-0 pt-2 relative overflow-hidden">
+        <h2 className="font-medium text-lg text-foreground leading-4">
+          {serverInfo.serverTitle}
+        </h2>
+        <p className="w-full truncate text-sm opacity-70">
+          {serverInfo.serverDescription}
+        </p>
+        <div className="flex flex-row gap-2 mt-1">
+          <span className="border border-border-hover font-thin text-sm rounded-full px-2 py-0 opacity-100 bg-foreground text-background">
+            {serverInfo.serverMemberCount} members
+          </span>
+        </div>
       </div>
     </div>
   );
@@ -200,7 +315,7 @@ function NewSetupForm({
   onBack: () => void;
   setHeader: React.Dispatch<React.SetStateAction<HeaderState>>;
 }) {
-  const [stage, setStage] = useState(0);
+  const [stage, setStage] = useState(1);
 
   const [data, setData] = useState({
     clientId: "",
@@ -209,25 +324,13 @@ function NewSetupForm({
   });
 
   const [loading, setLoading] = useState(false);
+  const [serverInfo, setServerInfo] = useState<ServerInfo | null>(null);
   const [channels, setChannels] = useState<
     {
       id: string;
       name: string;
     }[]
-  >([
-    {
-      id: "12313-1321-12314-112 ",
-      name: "Dataset"
-    },
-    {
-      id: "12313-1321-12314-112 ",
-      name: "Photos"
-    },
-    {
-      id: "12313-1321-12314-112 ",
-      name: "Videos"
-    }
-  ]);
+  >([]);
 
   const [selectedChannel, setSelectedChannel] = useState<{
     id: string;
@@ -261,10 +364,12 @@ function NewSetupForm({
         serverId: data.serverId,
         botToken: data.botToken
       });
+      console.log(res);
       if (!res?.channels || !res.info)
         return toast.error("Invalid credentials");
       setStage(1);
       setChannels(res.channels);
+      setServerInfo(res.info);
       console.log("channels", res.channels);
       console.log("info", res.info);
     } catch (error) {
@@ -279,9 +384,11 @@ function NewSetupForm({
   if (stage === 1) {
     return (
       <div className="pt-4">
+        {serverInfo && (
+          <ServerInfoCard channels={channels} serverInfo={serverInfo} />
+        )}
         <ChannelSelectionForm
           channels={channels}
-          setChannels={setChannels}
           selectedChannel={selectedChannel}
           setSelectedChannel={setSelectedChannel}
           onBack={() => setStage(0)}
@@ -291,11 +398,14 @@ function NewSetupForm({
   }
 
   return (
-    <div className="w-full pt-4 flex flex-col gap-2">
+    <div
+      className={`${loading ? "animate-pulse pointer-events-auto cursor-wait select-none" : ""} w-full pt-4 flex flex-col gap-2`}
+    >
       <Input
         type="text"
         placeholder="Client ID"
         value={data.clientId}
+        loading={loading}
         onChange={(e) =>
           setData({
             ...data,
@@ -308,6 +418,7 @@ function NewSetupForm({
         type="text"
         placeholder="Server ID"
         value={data.serverId}
+        loading={loading}
         onChange={(e) =>
           setData({
             ...data,
@@ -320,6 +431,7 @@ function NewSetupForm({
         type="text"
         placeholder="Bot Token"
         value={data.botToken}
+        loading={loading}
         onChange={(e) =>
           setData({
             ...data,
@@ -339,6 +451,7 @@ function NewSetupForm({
             onBack();
           }}
           isLoading={false}
+          disabled={loading}
           back
         />
 
@@ -365,16 +478,10 @@ export default function StartPage() {
     title: "Get Started",
     description: "Choose your case to use the app."
   });
-  const [testValue, setTestValue] = useState("");
-  const handleTestButton = async () => {
-    const res = await trpcClient.test.query();
-    setTestValue(res);
-  };
+
   return (
     <main className="w-screen min-h-screen flex justify-center items-center">
       <div className="flex flex-col min-w-80 max-w-100">
-        <button onClick={handleTestButton}>Click Text</button>
-        <h3 className="text-3xl font-bold text-foreground">{testValue}</h3>
         <div>
           <h2 className="text-3xl font-bold">{header.title}</h2>
 

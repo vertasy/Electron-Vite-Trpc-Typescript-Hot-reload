@@ -22,7 +22,7 @@
     "build:ui": "vite build",
     "build:electron": "tsc -p tsconfig.node.json",
     "build": "npm run build:ui && npm run build:electron",
-    "dist": "npm run build && electron-builder"
+    "dist": "cross-env CSC_IDENTITY_AUTO_DISCOVERY=false npm run build && electron-builder"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",
@@ -38,6 +38,8 @@
     "discord.js": "^14.26.4",
     "drizzle-kit": "^0.31.10",
     "drizzle-orm": "^0.45.2",
+    "electron-log": "^5.4.4",
+    "input-otp": "^1.4.2",
     "install": "^0.13.0",
     "lucide-react": "^1.21.0",
     "npm": "^11.17.0",
@@ -74,13 +76,12 @@
     "files": [
       "dist-electron/**/*",
       "dist-react/**/*",
-      "node_modules/**/*",
       "package.json"
     ],
     "extraResources": [
       {
-        "from": "resources",
-        "to": "resources"
+        "from": "resources/migrations",
+        "to": "migrations"
       }
     ],
     "win": {

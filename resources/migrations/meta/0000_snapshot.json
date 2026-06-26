@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "96835b52-b332-41e8-81ad-00e44493eed4",
+  "id": "776151a1-0231-42a6-904f-00ed2ecac1c4",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "files": {
@@ -281,6 +281,13 @@
         "serverMemberCount": {
           "name": "serverMemberCount",
           "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "hashedCode": {
+          "name": "hashedCode",
+          "type": "text",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
