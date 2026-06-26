@@ -34,6 +34,11 @@ CREATE TABLE `metadata` (
 	`channelId` text NOT NULL,
 	`botToken` text NOT NULL,
 	`version` integer DEFAULT 0 NOT NULL,
+	`serverTitle` text,
+	`serverDescription` text,
+	`serverPfp` text,
+	`serverBanner` text,
+	`serverMemberCount` integer,
 	`createdAt` text DEFAULT (CURRENT_TIMESTAMP) NOT NULL,
 	`updatedAt` text DEFAULT (CURRENT_TIMESTAMP)
 );

@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "0f973996-8d70-4d53-80ab-106b94d99375",
+  "id": "96835b52-b332-41e8-81ad-00e44493eed4",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "files": {
@@ -249,6 +249,41 @@
           "notNull": true,
           "autoincrement": false,
           "default": 0
+        },
+        "serverTitle": {
+          "name": "serverTitle",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "serverDescription": {
+          "name": "serverDescription",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "serverPfp": {
+          "name": "serverPfp",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "serverBanner": {
+          "name": "serverBanner",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "serverMemberCount": {
+          "name": "serverMemberCount",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
         },
         "createdAt": {
           "name": "createdAt",
