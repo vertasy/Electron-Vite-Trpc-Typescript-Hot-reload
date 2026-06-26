@@ -1,12 +1,21 @@
 {
   "compilerOptions": {
-    "target": "ESNext",
+    "target": "ES2022",
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
-    "outDir": "dist-electron",
+
     "rootDir": "src",
+    "outDir": "dist-electron",
+
     "strict": true,
-    "types": ["./types"]
+
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
+
+    "types": ["node", "./types"]
   },
+
   "include": ["src/electron/**/*", "src/backend/**/*", "src/shared/**/*"]
 }

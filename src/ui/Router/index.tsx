@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { HashRouter, Routes, Route } from "react-router-dom";
 
 import AuthGuard from "../middleware/AuthGuard";
 import Home from "./pages/Home";
@@ -6,7 +6,7 @@ import Start from "./pages/start/Start";
 
 export default function Router() {
   return (
-    <BrowserRouter>
+    <HashRouter>
       <Routes>
         {/* <Route path="/" element={<Home />} /> */}
 
@@ -21,6 +21,6 @@ export default function Router() {
           }
         />
       </Routes>
-    </BrowserRouter>
+    </HashRouter>
   );
 }

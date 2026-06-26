@@ -1,4 +1,18 @@
 {
+  "name": "thootie",
+  "version": "1.0.0",
+  "description": "A modern Electron starter template built with:",
+  "homepage": "https://github.com/vertasy/Electron-Vite-Trpc-Typescript-Hot-reload#readme",
+  "bugs": {
+    "url": "https://github.com/vertasy/Electron-Vite-Trpc-Typescript-Hot-reload/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vertasy/Electron-Vite-Trpc-Typescript-Hot-reload.git"
+  },
+  "license": "ISC",
+  "author": "",
+  "type": "commonjs",
   "main": "dist-electron/electron/main.js",
   "scripts": {
     "dev:ui": "vite",
@@ -23,15 +37,16 @@
     "cross-env": "^10.1.0",
     "drizzle-kit": "^0.31.10",
     "drizzle-orm": "^0.45.2",
-    "electron": "^42.5.0",
+    "install": "^0.13.0",
     "lucide-react": "^1.21.0",
+    "npm": "^11.17.0",
+    "radix-ui": "^1.6.0",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
     "react-router-dom": "^7.18.0",
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.6.0",
     "tailwindcss": "^4.3.1",
-    "typescript": "^6.0.3",
     "vite": "^8.1.0"
   },
   "devDependencies": {
@@ -39,18 +54,25 @@
     "@types/node": "^26.0.1",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
-    "electron-builder": "^26.15.3",
+    "electron": "^42.5.0",
+    "electron-builder": "^26.0.0",
+    "typescript": "^5.9.2",
     "wait-on": "^9.0.10"
   },
   "build": {
     "appId": "com.yourcompany.yourapp",
     "productName": "Thootie",
+    "asar": false,
+    "npmRebuild": false,
+    "buildDependenciesFromSource": false,
+    "nodeGypRebuild": false,
     "directories": {
       "output": "release"
     },
     "files": [
       "dist-electron/**/*",
       "dist-react/**/*",
+      "node_modules/**/*",
       "package.json"
     ],
     "extraResources": [

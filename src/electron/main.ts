@@ -9,20 +9,25 @@ let mainWindow: BrowserWindow | null = null;
 let worker: ChildProcess | null = null;
 let restartTimeout: NodeJS.Timeout | null = null;
 
+function getAppRoot() {
+  return app.isPackaged ? app.getAppPath() : process.cwd();
+}
+
 function getWorkerPath() {
-  return path.join(process.cwd(), "dist-electron", "backend", "worker.js");
+  return path.join(getAppRoot(), "dist-electron", "backend", "worker.js");
 }
 
 function getPreloadPath() {
-  return path.join(process.cwd(), "dist-electron", "electron", "preload.cjs");
+  return path.join(getAppRoot(), "dist-electron", "electron", "preload.cjs");
 }
 
 function getUIPath() {
-  return path.join(process.cwd(), "dist-react", "index.html");
+  return path.join(getAppRoot(), "dist-react", "index.html");
 }
 
 function startWorker() {
   console.log("Starting backend worker");
+  console.log("Worker:", getWorkerPath());
 
   worker = fork(getWorkerPath());
 
@@ -36,9 +41,7 @@ function startWorker() {
 }
 
 function stopWorker() {
-  if (!worker) {
-    return;
-  }
+  if (!worker) return;
 
   worker.kill();
   worker = null;
@@ -58,24 +61,26 @@ function restartWorker() {
 }
 
 function createWindow() {
+  console.log("App Root:", getAppRoot());
+  console.log("Preload:", getPreloadPath());
+  console.log("UI:", getUIPath());
+
   mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
-    backgroundColor: "black",
+    backgroundColor: "#000000",
     webPreferences: {
       preload: getPreloadPath(),
       devTools: true
     }
   });
 
-  if (!app.isPackaged) {
-    mainWindow.loadURL("http://localhost:5173");
-    mainWindow.webContents.openDevTools();
-  } else {
+  mainWindow.webContents.openDevTools();
+  if (app.isPackaged) {
     mainWindow.loadFile(getUIPath());
+  } else {
+    mainWindow.loadURL("http://localhost:5173");
   }
-  // dev
-  // production
 }
 
 app.whenReady().then(() => {
@@ -85,13 +90,15 @@ app.whenReady().then(() => {
 
   registerTrpcIpcListener(() => worker);
 
-  chokidar
-    .watch(path.join(process.cwd(), "dist-electron", "backend"), {
-      ignoreInitial: true
-    })
-    .on("add", restartWorker)
-    .on("change", restartWorker)
-    .on("unlink", restartWorker);
+  if (!app.isPackaged) {
+    chokidar
+      .watch(path.join(process.cwd(), "dist-electron", "backend"), {
+        ignoreInitial: true
+      })
+      .on("add", restartWorker)
+      .on("change", restartWorker)
+      .on("unlink", restartWorker);
+  }
 });
 
 app.on("before-quit", () => {
