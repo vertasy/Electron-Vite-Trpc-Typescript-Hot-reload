@@ -8,6 +8,13 @@ export const metadataTable = sqliteTable("metadata", {
   channelId: text().notNull(),
   botToken: text().notNull(),
   version: integer().notNull().default(0),
+  // info: text().$type<{
+  //   title?: string;
+  //   description?: string;
+  //   pfp?: string;
+  //   banner?: string;
+  //   memberCount?: number;
+  // }>(),
   createdAt: text()
     .default(sql`(CURRENT_TIMESTAMP)`)
     .notNull(),

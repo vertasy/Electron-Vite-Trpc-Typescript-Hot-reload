@@ -1,28 +1,18 @@
-import { app } from "electron";
 import path from "path";
-import fs from "fs";
-
 import Database from "better-sqlite3";
 import { drizzle } from "drizzle-orm/better-sqlite3";
+import { getLocalDataDir, getIsPackaged } from "../config.js";
 
-function getLocalDataDir() {
-  const dir = !app.isPackaged
-    ? path.join(process.cwd(), "localData")
-    : app.getPath("userData");
+export async function getDbPath(uuid?: string) {
+  const dir = await getLocalDataDir();
 
-  fs.mkdirSync(dir, {
-    recursive: true
-  });
-
-  return dir;
+  return path.join(dir, uuid ? `${uuid}.sqlite` : "base.sqlite");
 }
 
-export function getDbPath(uuid?: string) {
-  return path.join(getLocalDataDir(), uuid ? `${uuid}.sqlite` : "base.sqlite");
-}
+export async function getDb(uuid?: string) {
+  const dbPath = await getDbPath(uuid);
+  const sqlite = new Database(dbPath);
 
-export function getDb(uuid?: string) {
-  const sqlite = new Database(getDbPath(uuid));
-
+  console.log("Database:", dbPath);
   return drizzle(sqlite);
 }

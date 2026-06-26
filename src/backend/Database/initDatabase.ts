@@ -1,25 +1,34 @@
 import fs from "fs";
+import path from "path";
 import Database from "better-sqlite3";
-
+import { app } from "electron";
+import { drizzle } from "drizzle-orm/better-sqlite3";
 import { migrate } from "drizzle-orm/better-sqlite3/migrator";
-import { getDb, getDbPath } from "./getDatabasePath";
 
-export function initDatabase() {
-  const dbPath = getDbPath();
+export async function initDatabase() {
+  const dataDir = app.isPackaged
+    ? app.getPath("userData")
+    : path.join(process.cwd(), "localData");
 
-  const exists = fs.existsSync(dbPath);
+  // Ensure the directory exists
+  fs.mkdirSync(dataDir, { recursive: true });
 
-  if (!exists) {
-    console.log("Creating base.sqlite...");
+  const dbPath = path.join(dataDir, "base.sqlite");
 
-    const sqlite = new Database(dbPath);
+  console.log("Database:", dbPath);
 
+  // SQLite automatically creates the file if it doesn't exist
+  const sqlite = new Database(dbPath);
+  const db = drizzle(sqlite);
+
+  try {
+    console.log("Migrating...");
+    migrate(db, {
+      migrationsFolder: "./resources/migrations"
+    });
+
+    console.log("Database ready");
+  } finally {
     sqlite.close();
   }
-
-  const db = getDb();
-
-  migrate(db, { migrationsFolder: "./resources/migrations" });
-
-  console.log("Database ready");
 }

@@ -2,8 +2,9 @@ import { app, BrowserWindow } from "electron";
 import { fork, ChildProcess } from "node:child_process";
 import chokidar from "chokidar";
 import path from "node:path";
-
+import fs from "node:fs";
 import { registerTrpcIpcListener } from "./trpc.js";
+import { initDatabase } from "../backend/Database/initDatabase.js";
 
 let mainWindow: BrowserWindow | null = null;
 let worker: ChildProcess | null = null;
@@ -28,9 +29,14 @@ function getUIPath() {
 function startWorker() {
   console.log("Starting backend worker");
   console.log("Worker:", getWorkerPath());
-
   worker = fork(getWorkerPath());
-
+  worker.send({
+    type: "init",
+    config: {
+      localDataDir: app.getPath("userData"),
+      isPackaged: app.isPackaged
+    }
+  });
   worker.on("exit", (code) => {
     console.log(`Backend worker exited (${code})`);
   });
@@ -83,12 +89,12 @@ function createWindow() {
   }
 }
 
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
   createWindow();
 
   startWorker();
-
   registerTrpcIpcListener(() => worker);
+  await initDatabase();
 
   if (!app.isPackaged) {
     chokidar

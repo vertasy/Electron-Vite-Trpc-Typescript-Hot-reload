@@ -7,7 +7,6 @@ import {
   Hash,
   HashIcon
 } from "lucide-react";
-// import { trpcClient } from "../../trpc";
 import { toast } from "sonner";
 import {
   Select,
@@ -17,6 +16,7 @@ import {
   SelectTrigger,
   SelectValue
 } from "../../../components/select";
+import { trpcClient } from "../../../trpcClient";
 
 type HeaderState = {
   title: string;
@@ -256,17 +256,17 @@ function NewSetupForm({
         toast.error("Please enter all the credentials");
         return;
       }
-      // const res = await trpcClient.start.newStart.query({
-      //   cliendId: data.clientId,
-      //   serverId: data.serverId,
-      //   botToken: data.botToken
-      // });
-      // if (!res?.channels || !res.info)
-      //   return toast.error("Invalid credentials");
-      // setStage(1);
-      // setChannels(res.channels);
-      // console.log("channels", res.channels);
-      // console.log("info", res.info);
+      const res = await trpcClient.start.newSetup.query({
+        clientId: data.clientId,
+        serverId: data.serverId,
+        botToken: data.botToken
+      });
+      if (!res?.channels || !res.info)
+        return toast.error("Invalid credentials");
+      setStage(1);
+      setChannels(res.channels);
+      console.log("channels", res.channels);
+      console.log("info", res.info);
     } catch (error) {
       toast.error("Invalid credentials");
       setLoading(false);
@@ -365,10 +365,16 @@ export default function StartPage() {
     title: "Get Started",
     description: "Choose your case to use the app."
   });
-
+  const [testValue, setTestValue] = useState("");
+  const handleTestButton = async () => {
+    const res = await trpcClient.test.query();
+    setTestValue(res);
+  };
   return (
     <main className="w-screen min-h-screen flex justify-center items-center">
       <div className="flex flex-col min-w-80 max-w-100">
+        <button onClick={handleTestButton}>Click Text</button>
+        <h3 className="text-3xl font-bold text-foreground">{testValue}</h3>
         <div>
           <h2 className="text-3xl font-bold">{header.title}</h2>
 

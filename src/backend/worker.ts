@@ -1,8 +1,14 @@
 import { createCaller } from "./trpc.js";
+import { setConfig } from "./config.js";
 
 const caller = createCaller({});
 
 process.on("message", async (message: any) => {
+  if (message.type === "init") {
+    setConfig(message.config);
+    return;
+  }
+
   try {
     const fn = (caller as any)[message.payload.procedureName];
 

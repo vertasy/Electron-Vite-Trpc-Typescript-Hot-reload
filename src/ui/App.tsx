@@ -14,12 +14,6 @@ export default function App() {
     setResult(response.greeting);
   }
 
-  async function testMutation() {
-    const response = await trpcClient.test.mutate();
-
-    setResult(String(response));
-  }
-
   return (
     <>
       <Router />

@@ -1,10 +1,8 @@
-import { initTRPC } from "@trpc/server";
-
-const t = initTRPC.create();
-
-export const publicProcedure = t.procedure;
+import { startRouter } from "./Router/start/startRouter";
+import { publicProcedure, t } from "./initTrpc";
 
 export const appRouter = t.router({
+  start: startRouter,
   double: publicProcedure
     .input((arg) => arg as { name: string })
     .query(({ input }) => {
@@ -13,7 +11,7 @@ export const appRouter = t.router({
       };
     }),
 
-  test: publicProcedure.mutation(() => 22)
+  test: publicProcedure.query(() => "test")
 });
 
 export const createCaller = t.createCallerFactory(appRouter);
