@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "776151a1-0231-42a6-904f-00ed2ecac1c4",
+  "id": "3f8041e9-77aa-44d8-be85-ce3f8a686399",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "files": {
@@ -230,6 +230,13 @@
         },
         "channelId": {
           "name": "channelId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "dbChannelId": {
+          "name": "dbChannelId",
           "type": "text",
           "primaryKey": false,
           "notNull": true,

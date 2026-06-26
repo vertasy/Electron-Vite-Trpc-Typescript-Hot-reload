@@ -90,11 +90,10 @@ function createWindow() {
 }
 
 app.whenReady().then(async () => {
+  await initDatabase();
   createWindow();
-
   startWorker();
   registerTrpcIpcListener(() => worker);
-  await initDatabase();
 
   if (!app.isPackaged) {
     chokidar

@@ -65,6 +65,7 @@ export default async function newSetup({
       clientId,
       guildId: serverId,
       channelId: "",
+      dbChannelId: "",
       botToken,
       version: 0,
       serverTitle: info.serverTitle,
@@ -88,12 +89,18 @@ export default async function newSetup({
   }
 }
 
-export async function selectChannel({ channelId }: { channelId: string }) {
+export async function selectChannel({
+  channelId,
+  dbChannelId
+}: {
+  channelId: string;
+  dbChannelId: string;
+}) {
   try {
     const db = await getDb();
     await db
       .update(metadataTable)
-      .set({ channelId })
+      .set({ channelId, dbChannelId })
       .where(eq(metadataTable.id, "1"));
     return true;
   } catch (error) {

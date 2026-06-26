@@ -46,11 +46,28 @@ export default async function setupCode(code: string) {
   try {
     const encryptedPin = encryptPin(code);
     const db = await getDb();
+    const rec = await db.select().from(metadataTable).limit(1).all();
+    if (rec[0].hashedCode !== null) return false;
     await db
       .update(metadataTable)
       .set({ hashedCode: encryptedPin })
       .where(eq(metadataTable.id, "1"));
     return true;
+  } catch (error) {
+    console.error(error);
+    throw new TRPCError({
+      code: "INTERNAL_SERVER_ERROR",
+      message: String(error)
+    });
+  }
+}
+
+export async function checkCode(code: string) {
+  try {
+    const db = await getDb();
+    const metadata = await db.select().from(metadataTable).limit(1).all();
+    const decryptedPin = decryptPin(metadata[0].hashedCode!);
+    return decryptedPin === code;
   } catch (error) {
     console.error(error);
     throw new TRPCError({

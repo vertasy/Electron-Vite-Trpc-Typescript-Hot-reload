@@ -6,6 +6,7 @@ export const metadataTable = sqliteTable("metadata", {
   clientId: text().notNull(),
   guildId: text().notNull(),
   channelId: text().notNull(),
+  dbChannelId: text().notNull(),
   botToken: text().notNull(),
   version: integer().notNull().default(0),
   serverTitle: text(),

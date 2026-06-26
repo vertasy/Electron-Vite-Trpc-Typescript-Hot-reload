@@ -9,10 +9,14 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { trpcClient } from "../../../trpcClient";
 import { useNavigate } from "react-router-dom";
+import { useAuthStore } from "../../../store/auth";
+import { useSetupStore } from "../../../store/setup";
 export default function CodeSetupPage() {
   const [code, setCode] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const unlock = useAuthStore((state) => state.unlock);
+  const setStage = useSetupStore((s) => s.setStage);
   const handleSubmit = async () => {
     if (!code || code.length !== 4) {
       toast.error("Please enter a code");
@@ -25,8 +29,10 @@ export default function CodeSetupPage() {
         toast.error("Failed to set code");
         return;
       }
+      unlock();
       console.log(res);
-      navigate("/");
+      setStage(2);
+      navigate("/", { replace: true });
     } catch (error) {
       toast.error("Failed to set code");
       console.error(error);

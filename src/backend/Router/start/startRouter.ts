@@ -1,5 +1,5 @@
 import { publicProcedure, t } from "../../initTrpc";
-import setupCode from "./code";
+import setupCode, { checkCode } from "./code";
 import newSetup, {
   NewSetupArgs,
   refreshChannels,
@@ -12,8 +12,13 @@ export const startRouter = t.router({
     .input((arg) => arg as NewSetupArgs)
     .query(({ input }) => newSetup(input)),
   selecChannel: publicProcedure
-    .input((arg) => arg as { channelId: string })
-    .query(({ input }) => selectChannel({ channelId: input.channelId })),
+    .input((arg) => arg as { channelId: string; dbChannelId: string })
+    .query(({ input }) =>
+      selectChannel({
+        channelId: input.channelId,
+        dbChannelId: input.dbChannelId
+      })
+    ),
   refreshChannels: publicProcedure.query(() => refreshChannels()),
   setCode: publicProcedure
     .input(
@@ -23,5 +28,13 @@ export const startRouter = t.router({
         }
     )
     .query(({ input }) => setupCode(input.code)),
+  checkCode: publicProcedure
+    .input(
+      (arg) =>
+        arg as {
+          code: string;
+        }
+    )
+    .query(({ input }) => checkCode(input.code)),
   getStaus: publicProcedure.query(() => GetStatus())
 });

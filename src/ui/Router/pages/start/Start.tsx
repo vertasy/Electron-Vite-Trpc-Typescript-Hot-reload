@@ -20,6 +20,7 @@ import {
 } from "../../../components/select";
 import { trpcClient } from "../../../trpcClient";
 import { useNavigate } from "react-router-dom";
+import { useSetupStore } from "../../../store/setup";
 
 type HeaderState = {
   title: string;
@@ -161,17 +162,23 @@ function ChannelSelectionForm({
   onBack,
   channels,
   selectedChannel,
-  setSelectedChannel
+  setSelectedChannel,
+  selectedFilesChannel,
+  setSelectedFilesChannel
 }: {
   channels: Channel[];
   selectedChannel: Channel | null;
   setSelectedChannel: React.Dispatch<React.SetStateAction<Channel | null>>;
+  selectedFilesChannel: Channel | null;
+  setSelectedFilesChannel: React.Dispatch<React.SetStateAction<Channel | null>>;
   onBack: () => void;
 }) {
+  const setStage = useSetupStore((state) => state.setStage);
   const navigate = useNavigate();
   const [localChannels, setLocalChannels] = useState<Channel[] | null>(null);
   const [refreshLoading, setRefreshLoading] = useState(false);
   const [loading, setLoading] = useState(false);
+
   // Use refreshed channels if available, otherwise use props
   const displayChannels = localChannels ?? channels;
 
@@ -186,6 +193,18 @@ function ChannelSelectionForm({
       }
 
       setLocalChannels(res);
+
+      // Clear selections if they no longer exist
+      if (selectedChannel && !res.some((c) => c.id === selectedChannel.id)) {
+        setSelectedChannel(null);
+      }
+
+      if (
+        selectedFilesChannel &&
+        !res.some((c) => c.id === selectedFilesChannel.id)
+      ) {
+        setSelectedFilesChannel(null);
+      }
     } catch (error) {
       console.error(error);
     } finally {
@@ -195,18 +214,28 @@ function ChannelSelectionForm({
 
   const handleSelectChannel = async () => {
     if (!selectedChannel) {
-      toast.error("Please select a channel");
+      toast.error("Please select the bot channel");
       return;
     }
+
+    if (!selectedFilesChannel) {
+      toast.error("Please select the files channel");
+      return;
+    }
+
     try {
-      console.log(selectedChannel);
       setLoading(true);
 
       const res = await trpcClient.start.selecChannel.query({
-        channelId: selectedChannel.id
+        channelId: selectedFilesChannel.id,
+        dbChannelId: selectedChannel.id
       });
-      if (!res) return toast.error("Failed to select channel");
 
+      if (!res) {
+        toast.error("Failed to select channels");
+        return;
+      }
+      setStage(1); // update immediately
       navigate("/start/code-setup");
     } catch (error) {
       console.error(error);
@@ -215,21 +244,29 @@ function ChannelSelectionForm({
     }
   };
 
+  const botChannelOptions = displayChannels.filter(
+    (c) => c.id !== selectedFilesChannel?.id
+  );
+
+  const filesChannelOptions = displayChannels.filter(
+    (c) => c.id !== selectedChannel?.id
+  );
+
   return (
-    <div className="flex flex-col gap-2">
-      <div className="w-full">
-        {displayChannels.length === 0 ? (
-          <div className="flex flex-col gap-2 w-full">
-            <div className="border bg-muted border-amber-300 rounded-2xl px-4 py-2 flex items-center gap-2">
-              <TriangleAlert className="text-amber-300" />
-              <span>
-                Your server has no channels, please create one and refresh.
-              </span>
-            </div>
+    <div className="flex flex-col gap-4">
+      {displayChannels.length === 0 ? (
+        <div className="flex flex-col gap-2 w-full">
+          <div className="border bg-muted border-amber-300 rounded-2xl px-4 py-2 flex items-center gap-2">
+            <TriangleAlert className="text-amber-300" />
+            <span>
+              Your server has no channels, please create one and refresh.
+            </span>
           </div>
-        ) : (
-          <>
-            <h2 className="font-medium">Channel</h2>
+        </div>
+      ) : (
+        <>
+          <div className="w-full">
+            <h2 className="font-medium mb-1">MetaData Channel</h2>
 
             <Select
               value={selectedChannel?.id}
@@ -239,11 +276,11 @@ function ChannelSelectionForm({
               }}
             >
               <SelectTrigger className="w-full h-12 bg-muted">
-                <SelectValue placeholder="Select a channel" />
+                <SelectValue placeholder="Select the bot channel" />
               </SelectTrigger>
 
               <SelectContent>
-                {displayChannels.map((channel) => (
+                {botChannelOptions.map((channel) => (
                   <SelectItem
                     key={channel.id}
                     value={channel.id}
@@ -255,9 +292,38 @@ function ChannelSelectionForm({
                 ))}
               </SelectContent>
             </Select>
-          </>
-        )}
-      </div>
+          </div>
+
+          <div className="w-full">
+            <h2 className="font-medium mb-1">Files Channel</h2>
+
+            <Select
+              value={selectedFilesChannel?.id}
+              onValueChange={(value) => {
+                const channel = displayChannels.find((c) => c.id === value);
+                setSelectedFilesChannel(channel ?? null);
+              }}
+            >
+              <SelectTrigger className="w-full h-12 bg-muted">
+                <SelectValue placeholder="Select the files channel" />
+              </SelectTrigger>
+
+              <SelectContent>
+                {filesChannelOptions.map((channel) => (
+                  <SelectItem
+                    key={channel.id}
+                    value={channel.id}
+                    className="h-10 px-2"
+                  >
+                    <HashIcon className="mr-2 h-4 w-4" />
+                    {channel.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </>
+      )}
 
       <div className="flex gap-2">
         <SubmitButton title="Back" onClick={onBack} isLoading={false} back />
@@ -272,9 +338,13 @@ function ChannelSelectionForm({
 
         <SubmitButton
           title="Continue"
-          disabled={displayChannels.length === 0 || !selectedChannel}
+          disabled={
+            displayChannels.length < 2 ||
+            !selectedChannel ||
+            !selectedFilesChannel
+          }
           onClick={handleSelectChannel}
-          isLoading={false}
+          isLoading={loading}
         />
       </div>
     </div>
@@ -315,7 +385,7 @@ function NewSetupForm({
   onBack: () => void;
   setHeader: React.Dispatch<React.SetStateAction<HeaderState>>;
 }) {
-  const [stage, setStage] = useState(1);
+  const [stage, setStage] = useState(0);
 
   const [data, setData] = useState({
     clientId: "",
@@ -333,6 +403,10 @@ function NewSetupForm({
   >([]);
 
   const [selectedChannel, setSelectedChannel] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
+  const [selectedFilesChannel, setSelectedFilesChannel] = useState<{
     id: string;
     name: string;
   } | null>(null);
@@ -388,6 +462,8 @@ function NewSetupForm({
           <ServerInfoCard channels={channels} serverInfo={serverInfo} />
         )}
         <ChannelSelectionForm
+          selectedFilesChannel={selectedFilesChannel}
+          setSelectedFilesChannel={setSelectedFilesChannel}
           channels={channels}
           selectedChannel={selectedChannel}
           setSelectedChannel={setSelectedChannel}
@@ -466,11 +542,13 @@ function NewSetupForm({
 }
 
 function ExistingSetupForm() {
-  return <div className="pt-4">Existing setup form</div>;
+  return <div className="pt-4">Existing setup form12</div>;
 }
 
 export default function StartPage() {
-  const [selectedRoute, setSelectedRoute] = useState<"new" | "existing">("new");
+  const [selectedRoute, setSelectedRoute] = useState<"new" | "existing">(
+    "existing"
+  );
 
   const [stage, setStage] = useState(0);
 

@@ -32,6 +32,7 @@ CREATE TABLE `metadata` (
 	`clientId` text NOT NULL,
 	`guildId` text NOT NULL,
 	`channelId` text NOT NULL,
+	`dbChannelId` text NOT NULL,
 	`botToken` text NOT NULL,
 	`version` integer DEFAULT 0 NOT NULL,
 	`serverTitle` text,
