@@ -16,6 +16,7 @@ import PinPage from "./pages/start/pin";
 import { useAuthStore } from "../store/auth";
 import { useSetupStore } from "../store/setup";
 import About from "./pages/About";
+import DashboardLayout from "./pages/DashboardLayout";
 
 function AppWrapper({ children }: { children: React.ReactNode }) {
   const location = useLocation();
@@ -72,11 +73,15 @@ export default function Router() {
     <HashRouter>
       <AppWrapper>
         <Routes>
-          <Route path="/" element={<Home />} />
           <Route path="/about" element={<About />} />
           <Route path="/start" element={<Start />} />
           <Route path="/start/code-setup" element={<CodeSetupPage />} />
           <Route path="/start/pin" element={<PinPage />} />
+          <Route element={<DashboardLayout />}>
+            <Route path="/" element={<Home />} />
+            {/* <Route path="/dashboard/settings" element={<Settings />} />
+            <Route path="/dashboard/profile" element={<Profile />} /> */}
+          </Route>
         </Routes>
       </AppWrapper>
     </HashRouter>

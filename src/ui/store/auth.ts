@@ -8,7 +8,8 @@ type AuthState = {
 };
 
 export const useAuthStore = create<AuthState>((set) => ({
-  unlocked: false,
+  //fix
+  unlocked: true,
   unlock: () => set({ unlocked: true }),
   lock: () => set({ unlocked: false })
 }));

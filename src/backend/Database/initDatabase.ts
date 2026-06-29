@@ -10,12 +10,14 @@ export async function initDatabase() {
     ? app.getPath("userData")
     : path.join(process.cwd(), "localData");
 
+  log.info("dataDir", dataDir);
   // Ensure the directory exists
   fs.mkdirSync(dataDir, { recursive: true });
 
   const dbPath = path.join(dataDir, "base.sqlite");
 
   console.log("Database:", dbPath);
+  log.info("🍒 Migrations Database Path:", dbPath);
 
   // SQLite automatically creates the file if it doesn't exist
   const sqlite = new Database(dbPath);
@@ -32,6 +34,9 @@ export async function initDatabase() {
     });
 
     console.log("Database ready");
+  } catch (error) {
+    console.error(error);
+    log.error(error);
   } finally {
     sqlite.close();
   }

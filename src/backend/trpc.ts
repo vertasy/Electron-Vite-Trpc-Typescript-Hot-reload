@@ -1,17 +1,16 @@
 import { startRouter } from "./Router/start/startRouter";
+import { syncRouter } from "./Router/sync/syncRouter";
+import { GetImageFaceEmbedding } from "./face/face";
 import { publicProcedure, t } from "./initTrpc";
 
 export const appRouter = t.router({
   start: startRouter,
-  double: publicProcedure
-    .input((arg) => arg as { name: string })
-    .query(({ input }) => {
-      return {
-        greeting: `Helloo ${input.name}`
-      };
-    }),
-
-  test: publicProcedure.query(() => "test")
+  sync: syncRouter,
+  face: publicProcedure
+    .input((path) => {
+      return path as string;
+    })
+    .query((input) => GetImageFaceEmbedding(input.input))
 });
 
 export const createCaller = t.createCallerFactory(appRouter);

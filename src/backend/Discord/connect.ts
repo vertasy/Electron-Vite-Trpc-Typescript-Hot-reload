@@ -1,9 +1,7 @@
 import { Client, GatewayIntentBits } from "discord.js";
 
-let discordClient: Client | null = null;
-
 export async function DiscordClient(token: string): Promise<Client | null> {
-  if (discordClient) return discordClient;
+  console.log("👅👅 discord token", token);
 
   const client = new Client({
     intents: [GatewayIntentBits.Guilds]
@@ -11,10 +9,10 @@ export async function DiscordClient(token: string): Promise<Client | null> {
 
   try {
     await client.login(token);
+    return client;
   } catch (err) {
+    console.error("Discord login failed:", err);
+    client.destroy(); // clean up the partially‑created client
     return null;
   }
-
-  discordClient = client;
-  return client;
 }

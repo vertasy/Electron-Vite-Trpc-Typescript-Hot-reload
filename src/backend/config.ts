@@ -2,6 +2,7 @@ import path from "node:path";
 
 type BackendConfig = {
   localDataDir: string;
+  resourcesPath: string;
   isPackaged: boolean;
 };
 
@@ -30,6 +31,10 @@ export async function getLocalDataDir() {
   const { isPackaged, localDataDir } = await getConfig();
 
   return isPackaged ? localDataDir : path.join(process.cwd(), "localData");
+}
+
+export async function getResourcesPath() {
+  return (await getConfig()).resourcesPath;
 }
 
 export async function getIsPackaged() {

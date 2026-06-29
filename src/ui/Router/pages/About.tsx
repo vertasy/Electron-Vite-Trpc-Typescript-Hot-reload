@@ -8,3 +8,6 @@ export default function About() {
     </div>
   );
 }
+
+// restore url,
+// botken/serverid/dbchannelid/msgid

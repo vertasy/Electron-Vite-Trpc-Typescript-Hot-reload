@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   DatabaseIcon,
   PlusIcon,
@@ -7,7 +7,9 @@ import {
   Hash,
   HashIcon,
   TriangleAlert,
-  RefreshCwIcon
+  RefreshCwIcon,
+  FileUpIcon,
+  XIcon
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -542,13 +544,158 @@ function NewSetupForm({
 }
 
 function ExistingSetupForm() {
-  return <div className="pt-4">Existing setup form12</div>;
+  const [restoreString, setRestoreString] = useState("");
+  const [isDragging, setIsDragging] = useState(false);
+  const setStage = useSetupStore((state) => state.setStage);
+  // Updated type – no longer tied to the File object
+  type SelectedFile = {
+    name: string;
+    path: string;
+    file?: File; // optional, only available from drag-and-drop
+  };
+
+  const [selectedFile, setSelectedFile] = useState<SelectedFile | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  // Handles a dragged/dropped file using the Electron webUtils API
+  const handleFile = (file: File) => {
+    const path = window.electron.getPathForFile(file);
+    setSelectedFile({
+      name: file.name,
+      path,
+      file // keep the File object if you need its content later
+    });
+  };
+
+  const navigate = useNavigate();
+  // Handles the native dialog click (no input element)
+  const handleOpenDialog = async () => {
+    const result = await window.electron.openFileDialog();
+    if (!result) return; // user cancelled
+    setSelectedFile({
+      name: result.name,
+      path: result.path
+      // no file object – if you need the content, read it via another IPC call later
+    });
+  };
+
+  const onDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(false);
+
+    const file = e.dataTransfer.files[0];
+    if (!file) return;
+    handleFile(file);
+  };
+
+  // Clear selection
+  const clearSelection = () => {
+    setSelectedFile(null);
+  };
+
+  const handleSubmit = async () => {
+    try {
+      setLoading(true);
+      if (restoreString && restoreString.length > 0) {
+        const res = await trpcClient.sync.pullLatestDb.query(restoreString);
+        console.log(res);
+        setStage(1);
+        navigate("/start/pin", { replace: true });
+        return;
+      }
+
+      if (selectedFile) {
+        const res = await trpcClient.sync.uploadDb.query({
+          path: selectedFile.path
+        });
+        setStage(1);
+        navigate("/start/pin", { replace: true });
+        console.log(res);
+        return;
+      }
+    } catch (error) {
+      toast.error("Something went wrong.");
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="pt-4 w-full flex flex-col gap-2">
+      <div className="flex flex-col">
+        <Input
+          type="text"
+          placeholder="Restore String"
+          value={restoreString}
+          onChange={(e) => setRestoreString(e.target.value)}
+        />
+
+        <span className="text-foreground/70 text-center w-full my-2">
+          - or -
+        </span>
+
+        {/* CLICK AREA – now uses native dialog, no hidden input */}
+        <div
+          onClick={handleOpenDialog} // <-- changed
+          onDragOver={(e) => {
+            e.preventDefault();
+            setIsDragging(true);
+          }}
+          onDragLeave={(e) => {
+            e.preventDefault();
+            if (e.currentTarget.contains(e.relatedTarget as Node)) return;
+            setIsDragging(false);
+          }}
+          onDrop={onDrop}
+          className={`relative h-45 rounded-3xl cursor-pointer transition-all
+          ${
+            isDragging
+              ? "border-2 border-dashed border-primary bg-primary/5"
+              : "border border-border hover:border-border-hover bg-muted"
+          }`}
+        >
+          {!selectedFile ? (
+            <div className="flex flex-col items-center justify-center h-full opacity-70 pointer-events-none">
+              <FileUpIcon size={32} />
+              <span className="text-sm mt-2 max-w-[170px] text-center">
+                Click here or Drag your file to upload.
+              </span>
+            </div>
+          ) : (
+            <>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  clearSelection();
+                }}
+                className="absolute top-3 right-3 rounded-full p-1 hover:bg-destructive/10"
+              >
+                <XIcon size={18} />
+              </button>
+
+              <div className="flex flex-col justify-center h-full px-6">
+                <div className="font-medium truncate">{selectedFile.name}</div>
+                <div className="text-sm text-muted-foreground truncate mt-1">
+                  {selectedFile.path}
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+      <SubmitButton
+        title="Continue"
+        onClick={handleSubmit}
+        isLoading={loading}
+      />
+    </div>
+  );
 }
 
 export default function StartPage() {
-  const [selectedRoute, setSelectedRoute] = useState<"new" | "existing">(
-    "existing"
-  );
+  const [selectedRoute, setSelectedRoute] = useState<"new" | "existing">("new");
 
   const [stage, setStage] = useState(0);
 

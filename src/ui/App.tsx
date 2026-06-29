@@ -2,20 +2,12 @@ import { useEffect, useState } from "react";
 import { trpcClient } from "./trpcClient";
 import Router from "./Router/index";
 import { Toaster } from "./components/sonner";
+import { UploadPopup } from "./Router/pages/components/uploadPopup/UploadPopup";
 
 export default function App() {
-  const [result, setResult] = useState("");
-
-  async function testQuery() {
-    const response = await trpcClient.double.query({
-      name: "Diaa"
-    });
-
-    setResult(response.greeting);
-  }
-
   return (
     <>
+      <UploadPopup />
       <Router />
       <Toaster />
     </>
