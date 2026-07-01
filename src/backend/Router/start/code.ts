@@ -9,8 +9,8 @@ import { metadataTable } from "../../Database/schema/metadata";
 import { eq } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 
-const SECRET = "bro-if-u-saw-that-dont-panic"; // Store this securely
-const KEY = scryptSync(SECRET, "salt", 32);
+export const PIN_SECRET = "bro-if-u-saw-that-dont-panic"; // Store this securely
+const KEY = scryptSync(PIN_SECRET, "salt", 32);
 
 export function encryptPin(pin: string): string {
   if (!/^\d{4}$/.test(pin)) {

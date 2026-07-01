@@ -6,15 +6,22 @@ import {
   index
 } from "drizzle-orm/sqlite-core";
 import { sql } from "drizzle-orm";
+import { filesTable } from "./files";
 
-export const thumbnailsTable = sqliteTable(
-  "thumbnails",
+export const chunksTable = sqliteTable(
+  "chunks",
   {
     id: text().primaryKey().notNull(),
-    name: text().notNull(),
+    fileId: text()
+      .notNull()
+      .references(() => filesTable.id, {
+        onDelete: "cascade"
+      }),
     size: integer().notNull(),
+    // mimeType: text().notNull(),
+    chunkIndex: integer().notNull(),
     isEncrypted: integer().notNull(),
-    //discord
+    //discord3
     messageId: text().notNull(),
     attachmentId: text(),
     url: text(),
@@ -27,8 +34,8 @@ export const thumbnailsTable = sqliteTable(
       .$onUpdateFn(() => sql`(CURRENT_TIMESTAMP)`)
   },
   (t) => [
-    index("thumbnails_message_id_idx").on(t.messageId),
-    index("thumbnails_attachment_id_idx").on(t.attachmentId),
-    index("thumbnails_url_idx").on(t.url)
+    index("chunks_message_id_idx").on(t.messageId),
+    index("chunks_attachment_id_idx").on(t.attachmentId),
+    index("chunks_url_idx").on(t.url)
   ]
 );

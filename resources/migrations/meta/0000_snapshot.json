@@ -1,9 +1,127 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "3f8041e9-77aa-44d8-be85-ce3f8a686399",
+  "id": "8d409144-b24c-45cc-8d2f-119a564cf0ea",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
+    "chunks": {
+      "name": "chunks",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "fileId": {
+          "name": "fileId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "size": {
+          "name": "size",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "chunkIndex": {
+          "name": "chunkIndex",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "isEncrypted": {
+          "name": "isEncrypted",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "messageId": {
+          "name": "messageId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "attachmentId": {
+          "name": "attachmentId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "url": {
+          "name": "url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(CURRENT_TIMESTAMP)"
+        },
+        "updatedAt": {
+          "name": "updatedAt",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false,
+          "default": "(CURRENT_TIMESTAMP)"
+        }
+      },
+      "indexes": {
+        "chunks_message_id_idx": {
+          "name": "chunks_message_id_idx",
+          "columns": [
+            "messageId"
+          ],
+          "isUnique": false
+        },
+        "chunks_attachment_id_idx": {
+          "name": "chunks_attachment_id_idx",
+          "columns": [
+            "attachmentId"
+          ],
+          "isUnique": false
+        },
+        "chunks_url_idx": {
+          "name": "chunks_url_idx",
+          "columns": [
+            "url"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "chunks_fileId_files_id_fk": {
+          "name": "chunks_fileId_files_id_fk",
+          "tableFrom": "chunks",
+          "tableTo": "files",
+          "columnsFrom": [
+            "fileId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
     "files": {
       "name": "files",
       "columns": {
@@ -12,6 +130,13 @@
           "type": "text",
           "primaryKey": true,
           "notNull": true,
+          "autoincrement": false
+        },
+        "groupId": {
+          "name": "groupId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
           "autoincrement": false
         },
         "name": {
@@ -31,6 +156,13 @@
         "mimeType": {
           "name": "mimeType",
           "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "isEncrypted": {
+          "name": "isEncrypted",
+          "type": "integer",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
@@ -57,22 +189,15 @@
           "autoincrement": false,
           "default": 0
         },
-        "personId": {
-          "name": "personId",
+        "caption": {
+          "name": "caption",
           "type": "text",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
         },
-        "embedding": {
-          "name": "embedding",
-          "type": "blob",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "caption": {
-          "name": "caption",
+        "note": {
+          "name": "note",
           "type": "text",
           "primaryKey": false,
           "notNull": false,
@@ -82,7 +207,7 @@
           "name": "messageId",
           "type": "text",
           "primaryKey": false,
-          "notNull": true,
+          "notNull": false,
           "autoincrement": false
         },
         "attachmentId": {
@@ -140,25 +265,25 @@
         }
       },
       "foreignKeys": {
+        "files_groupId_groups_id_fk": {
+          "name": "files_groupId_groups_id_fk",
+          "tableFrom": "files",
+          "tableTo": "groups",
+          "columnsFrom": [
+            "groupId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
         "files_thumbnailId_thumbnails_id_fk": {
           "name": "files_thumbnailId_thumbnails_id_fk",
           "tableFrom": "files",
           "tableTo": "thumbnails",
           "columnsFrom": [
             "thumbnailId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "set null",
-          "onUpdate": "no action"
-        },
-        "files_personId_persons_id_fk": {
-          "name": "files_personId_persons_id_fk",
-          "tableFrom": "files",
-          "tableTo": "persons",
-          "columnsFrom": [
-            "personId"
           ],
           "columnsTo": [
             "id"
@@ -322,47 +447,6 @@
       "uniqueConstraints": {},
       "checkConstraints": {}
     },
-    "persons": {
-      "name": "persons",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "text",
-          "primaryKey": true,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "name": {
-          "name": "name",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": "'Default Name'"
-        },
-        "createdAt": {
-          "name": "createdAt",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": "(CURRENT_TIMESTAMP)"
-        },
-        "updatedAt": {
-          "name": "updatedAt",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false,
-          "default": "(CURRENT_TIMESTAMP)"
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "checkConstraints": {}
-    },
     "thumbnails": {
       "name": "thumbnails",
       "columns": {
@@ -387,25 +471,11 @@
           "notNull": true,
           "autoincrement": false
         },
-        "personId": {
-          "name": "personId",
-          "type": "text",
+        "isEncrypted": {
+          "name": "isEncrypted",
+          "type": "integer",
           "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "embedding": {
-          "name": "embedding",
-          "type": "blob",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "caption": {
-          "name": "caption",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         },
         "messageId": {
@@ -469,21 +539,7 @@
           "isUnique": false
         }
       },
-      "foreignKeys": {
-        "thumbnails_personId_persons_id_fk": {
-          "name": "thumbnails_personId_persons_id_fk",
-          "tableFrom": "thumbnails",
-          "tableTo": "persons",
-          "columnsFrom": [
-            "personId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "set null",
-          "onUpdate": "no action"
-        }
-      },
+      "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "checkConstraints": {}

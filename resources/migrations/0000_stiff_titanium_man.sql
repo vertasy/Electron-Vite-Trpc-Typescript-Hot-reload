@@ -1,0 +1,80 @@
+CREATE TABLE `chunks` (
+	`id` text PRIMARY KEY NOT NULL,
+	`fileId` text NOT NULL,
+	`size` integer NOT NULL,
+	`chunkIndex` integer NOT NULL,
+	`isEncrypted` integer NOT NULL,
+	`messageId` text NOT NULL,
+	`attachmentId` text,
+	`url` text,
+	`createdAt` text DEFAULT (CURRENT_TIMESTAMP) NOT NULL,
+	`updatedAt` text DEFAULT (CURRENT_TIMESTAMP),
+	FOREIGN KEY (`fileId`) REFERENCES `files`(`id`) ON UPDATE no action ON DELETE cascade
+);
+--> statement-breakpoint
+CREATE INDEX `chunks_message_id_idx` ON `chunks` (`messageId`);--> statement-breakpoint
+CREATE INDEX `chunks_attachment_id_idx` ON `chunks` (`attachmentId`);--> statement-breakpoint
+CREATE INDEX `chunks_url_idx` ON `chunks` (`url`);--> statement-breakpoint
+CREATE TABLE `files` (
+	`id` text PRIMARY KEY NOT NULL,
+	`groupId` text,
+	`name` text NOT NULL,
+	`size` integer NOT NULL,
+	`mimeType` text NOT NULL,
+	`isEncrypted` integer NOT NULL,
+	`type` text NOT NULL,
+	`thumbnailId` text,
+	`ChunkCount` integer DEFAULT 0 NOT NULL,
+	`caption` text,
+	`note` text,
+	`messageId` text,
+	`attachmentId` text,
+	`url` text,
+	`createdAt` text DEFAULT (CURRENT_TIMESTAMP) NOT NULL,
+	`updatedAt` text DEFAULT (CURRENT_TIMESTAMP),
+	FOREIGN KEY (`groupId`) REFERENCES `groups`(`id`) ON UPDATE no action ON DELETE cascade,
+	FOREIGN KEY (`thumbnailId`) REFERENCES `thumbnails`(`id`) ON UPDATE no action ON DELETE set null
+);
+--> statement-breakpoint
+CREATE INDEX `files_message_id_idx` ON `files` (`messageId`);--> statement-breakpoint
+CREATE INDEX `files_attachment_id_idx` ON `files` (`attachmentId`);--> statement-breakpoint
+CREATE INDEX `files_url_idx` ON `files` (`url`);--> statement-breakpoint
+CREATE TABLE `groups` (
+	`id` text PRIMARY KEY NOT NULL,
+	`createdAt` text DEFAULT (CURRENT_TIMESTAMP) NOT NULL,
+	`updatedAt` text DEFAULT (CURRENT_TIMESTAMP)
+);
+--> statement-breakpoint
+CREATE TABLE `metadata` (
+	`id` text PRIMARY KEY NOT NULL,
+	`clientId` text NOT NULL,
+	`guildId` text NOT NULL,
+	`channelId` text NOT NULL,
+	`dbChannelId` text NOT NULL,
+	`botToken` text NOT NULL,
+	`version` integer DEFAULT 0 NOT NULL,
+	`serverTitle` text,
+	`serverDescription` text,
+	`serverPfp` text,
+	`serverBanner` text,
+	`serverMemberCount` integer,
+	`hashedCode` text,
+	`createdAt` text DEFAULT (CURRENT_TIMESTAMP) NOT NULL,
+	`updatedAt` text DEFAULT (CURRENT_TIMESTAMP)
+);
+--> statement-breakpoint
+CREATE TABLE `thumbnails` (
+	`id` text PRIMARY KEY NOT NULL,
+	`name` text NOT NULL,
+	`size` integer NOT NULL,
+	`isEncrypted` integer NOT NULL,
+	`messageId` text NOT NULL,
+	`attachmentId` text,
+	`url` text,
+	`createdAt` text DEFAULT (CURRENT_TIMESTAMP) NOT NULL,
+	`updatedAt` text DEFAULT (CURRENT_TIMESTAMP)
+);
+--> statement-breakpoint
+CREATE INDEX `thumbnails_message_id_idx` ON `thumbnails` (`messageId`);--> statement-breakpoint
+CREATE INDEX `thumbnails_attachment_id_idx` ON `thumbnails` (`attachmentId`);--> statement-breakpoint
+CREATE INDEX `thumbnails_url_idx` ON `thumbnails` (`url`);

@@ -33,6 +33,9 @@ type UploadState = {
 
   error?: string;
 
+  // Loading state (separate from upload status)
+  isLoading: boolean;
+
   // Settings
   isEncrypted: boolean;
   aiCaptioning: boolean;
@@ -64,6 +67,9 @@ type UploadState = {
 
   resetUpload: () => void;
 
+  // Loading
+  setLoading: (loading: boolean) => void;
+
   // Settings
   setEncrypted: (value: boolean) => void;
   setAiCaptioning: (value: boolean) => void;
@@ -86,6 +92,8 @@ export const useUploadStore = create<UploadState>()(
       totalBatches: 0,
 
       error: undefined,
+
+      isLoading: false,
 
       isEncrypted: false,
       aiCaptioning: true,
@@ -140,6 +148,9 @@ export const useUploadStore = create<UploadState>()(
 
           error: undefined
         }),
+
+      // Loading
+      setLoading: (loading) => set({ isLoading: loading }),
 
       // Settings
       setEncrypted: (value) =>

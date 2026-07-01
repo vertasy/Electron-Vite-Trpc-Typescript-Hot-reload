@@ -36,7 +36,7 @@ export default async function syncDiscordDb() {
     client,
     rec[0].dbChannelId,
     `${localDir}/${dbName}.sqlite`,
-    dbName,
+    dbName!,
     rec[0].version + 1
   );
 

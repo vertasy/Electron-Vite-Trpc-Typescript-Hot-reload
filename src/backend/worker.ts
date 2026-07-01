@@ -1,30 +1,20 @@
 import { createCaller } from "./trpc.js";
 import { setConfig } from "./config.js";
-import { initFaceEngine } from "./face/face.js";
+import ProcessFiles from "./upload/Uploader.js";
+import { ChunkQueue } from "./upload/ChunksQueue.js";
 
 const caller = createCaller({});
-
-async function processFiles(files: UploadedFile[]) {
-  console.log("Bakcend worker Processing", files.length, "files...");
-
-  await new Promise<void>((resolve) => {
-    setTimeout(resolve, 10_000); // 10 seconds
-  });
-
-  console.log("Finished processing", files.length, "files.");
-}
-
+export const QUEUE = new ChunkQueue(4);
 process.on("message", async (raw) => {
   const message = raw as MainToWorkerMessage;
 
   switch (message.type) {
     case "init":
-      await initFaceEngine();
       setConfig(message.config);
       break;
 
     case "batch":
-      await processFiles(message.files);
+      await ProcessFiles(message.files, message.groupId);
 
       process.send?.({
         type: "requestBatch",
@@ -33,6 +23,7 @@ process.on("message", async (raw) => {
       break;
 
     case "finish":
+      await QUEUE.flush();
       process.send?.({
         type: "completed"
       });

@@ -5,6 +5,8 @@ import { app } from "electron";
 import { drizzle } from "drizzle-orm/better-sqlite3";
 import { migrate } from "drizzle-orm/better-sqlite3/migrator";
 import log from "electron-log";
+import * as sqliteVec from "sqlite-vec";
+
 export async function initDatabase() {
   const dataDir = app.isPackaged
     ? app.getPath("userData")
@@ -16,11 +18,12 @@ export async function initDatabase() {
 
   const dbPath = path.join(dataDir, "base.sqlite");
 
-  console.log("Database:", dbPath);
+  // console.log("Database:", dbPath);
   log.info("🍒 Migrations Database Path:", dbPath);
 
   // SQLite automatically creates the file if it doesn't exist
   const sqlite = new Database(dbPath);
+
   const db = drizzle(sqlite);
   const migrationsFolder = app.isPackaged
     ? path.join(process.resourcesPath, "migrations")

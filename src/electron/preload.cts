@@ -13,13 +13,9 @@ electron.contextBridge.exposeInMainWorld("electron", {
   openExternal: (url: string) => shell.openExternal(url),
   startUpload: (files: UploadedFile[]) =>
     ipcRenderer.invoke("upload:start", files),
-  onUploadProgress: (
-    callback: (progress: { processed: number; total: number }) => void
-  ) =>
-    ipcRenderer.on(
-      "upload:progress",
-      (_, progress: { processed: number; total: number }) => {
-        callback(progress);
-      }
-    )
+  onUploadFileProgress: (
+    callback: (data: { fileName: string; status: string }) => void
+  ) => {
+    ipcRenderer.on("upload:fileProgress", (_event, data) => callback(data));
+  }
 });

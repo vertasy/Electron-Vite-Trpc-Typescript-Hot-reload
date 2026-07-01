@@ -4,17 +4,12 @@ import Database from "better-sqlite3";
 import { drizzle } from "drizzle-orm/better-sqlite3";
 import { getLocalDataDir } from "../config.js";
 
-// Matches filenames like "d7b61c78-5cc6-422c-a7e4-a8f2ce50c4b1.sqlite"
 const UUID_REGEX =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\.sqlite$/i;
 
 let currentSqlite: Database.Database | null = null;
 let currentDb: ReturnType<typeof drizzle> | null = null;
-
-/**
- * Close the current database connection and clear the singleton.
- * Safe to call even if nothing is open.
- */
+let currentDbName: string | null = null;
 export function resetDatabase() {
   if (currentSqlite) {
     currentSqlite.close();
@@ -23,22 +18,10 @@ export function resetDatabase() {
   }
 }
 
-export async function getDbPath(uuid?: string) {
-  const dir = await getLocalDataDir();
-  return path.join(dir, uuid ? `${uuid}.sqlite` : "base.sqlite");
-}
+async function openDatabase(uuid?: string) {
+  // console.log("Opening database...");
 
-export async function getDbName(): Promise<string> {
-  const dir = await getLocalDataDir();
-  const entries = await readdir(dir, { withFileTypes: true });
-  const uuidFile = entries.find(
-    (entry) => entry.isFile() && UUID_REGEX.test(entry.name)
-  );
-  return uuidFile ? path.parse(uuidFile.name).name : "base";
-}
-
-export async function getDb(uuid?: string) {
-  // 🔄 Always release the previous connection before opening a new one
+  // Always close the previous connection
   resetDatabase();
 
   const dir = await getLocalDataDir();
@@ -51,13 +34,29 @@ export async function getDb(uuid?: string) {
     const uuidFile = entries.find(
       (entry) => entry.isFile() && UUID_REGEX.test(entry.name)
     );
+
     dbFile = uuidFile ? uuidFile.name : "base.sqlite";
   }
-
+  currentDbName = dbFile; // ✅ store it here
   const dbPath = path.join(dir, dbFile);
   console.log("Opening database:", dbPath);
 
   currentSqlite = new Database(dbPath);
   currentDb = drizzle(currentSqlite);
-  return currentDb;
+
+  return { sqlite: currentSqlite, drizzle: currentDb };
+}
+
+export async function getDb(uuid?: string) {
+  const { drizzle } = await openDatabase(uuid);
+  return drizzle;
+}
+
+export async function getBetterDb(uuid?: string): Promise<Database.Database> {
+  const { sqlite } = await openDatabase(uuid);
+  return sqlite;
+}
+
+export function getDbName() {
+  return currentDbName;
 }

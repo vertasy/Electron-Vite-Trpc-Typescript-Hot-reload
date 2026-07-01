@@ -7,6 +7,11 @@ declare global {
     processed: number;
     total: number;
   };
+  type FileProgressMessage = {
+    type: "fileProgress";
+    fileName: string;
+    status: "processing" | "completed";
+  };
   export type MainToWorkerMessage =
     | {
         type: "init";
@@ -14,10 +19,12 @@ declare global {
       }
     | {
         type: "batch";
+        groupId: string;
         files: UploadedFile[];
       }
     | {
         type: "finish";
+        groupId: string;
       };
 
   export type WorkerToMainMessage =
@@ -45,13 +52,12 @@ declare global {
         type: "raw";
         mimeType: string;
         name: string;
+        data?: Uint8Array;
         file: File;
       }
     | {
         id: string;
         type: "url";
-        mimeType: string;
-        name: string;
         url: string;
       };
 

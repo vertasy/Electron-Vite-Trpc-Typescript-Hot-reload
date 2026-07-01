@@ -5,17 +5,21 @@ import {
   blob,
   index
 } from "drizzle-orm/sqlite-core";
-import { personsTable } from "./persons";
 import { sql } from "drizzle-orm";
 import { thumbnailsTable } from "./thumbnails";
+import { groupsTable } from "./groups";
 
 export const filesTable = sqliteTable(
   "files",
   {
     id: text().primaryKey().notNull(),
+    groupId: text().references(() => groupsTable.id, {
+      onDelete: "cascade"
+    }),
     name: text().notNull(),
     size: integer().notNull(),
     mimeType: text().notNull(),
+    isEncrypted: integer().notNull(),
     type: text()
       .$type<"image" | "video" | "audio" | "document" | "other">()
       .notNull(),
@@ -23,13 +27,10 @@ export const filesTable = sqliteTable(
       onDelete: "set null"
     }),
     ChunkCount: integer().notNull().default(0),
-    personId: text().references(() => personsTable.id, {
-      onDelete: "set null"
-    }),
-    embedding: blob("embedding"),
     caption: text(),
-    //discord
-    messageId: text().notNull(),
+    note: text(),
+    //discord3
+    messageId: text(),
     attachmentId: text(),
     url: text(),
     //timestamps

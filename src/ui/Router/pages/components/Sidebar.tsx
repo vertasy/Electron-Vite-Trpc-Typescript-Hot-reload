@@ -50,7 +50,7 @@ export default function Sidebar() {
       }
     >
       <div>
-        <ServerCard {...serverInfo} />
+        <ServerCard {...serverInfo!} />
         <div className="flex flex-col items-center gap-5 mt-2 w-full">
           <button className="w-full cursor-pointer hover:bg-foreground/90 flex items-center gap-2 bg-foreground text-background  px-4 py-2 justify-between rounded-2xl border border-border hover:border-border-hover">
             <span className="font-medium">Uplaod</span>

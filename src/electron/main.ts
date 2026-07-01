@@ -1,4 +1,12 @@
-import { app, BrowserWindow, dialog, ipcMain, shell } from "electron";
+import {
+  app,
+  BrowserWindow,
+  dialog,
+  ipcMain,
+  net,
+  protocol,
+  shell
+} from "electron";
 import { fork, ChildProcess } from "node:child_process";
 import chokidar from "chokidar";
 import path from "node:path";
@@ -7,7 +15,10 @@ import { registerTrpcIpcListener } from "./trpc.js";
 import { initDatabase } from "../backend/Database/initDatabase.js";
 import log from "electron-log";
 import { lookup } from "mime-types";
-
+import { getDb } from "../backend/Database/getDatabasePath.js";
+import { groupsTable } from "../backend/Database/schema/groups.js";
+import { v4 as uuid } from "uuid";
+import { setupUploadProgressListener } from "./uploadProgress.js";
 let mainWindow: BrowserWindow | null = null;
 let worker: ChildProcess | null = null;
 let restartTimeout: NodeJS.Timeout | null = null;
@@ -18,6 +29,7 @@ const BATCH_SIZE = 4;
 let uploadQueue: UploadedFile[] = [];
 let totalFiles = 0;
 let processedFiles = 0;
+let currentGroupId: string | null = null;
 
 function getAppRoot() {
   return app.isPackaged ? app.getAppPath() : process.cwd();
@@ -36,11 +48,12 @@ function getUIPath() {
 }
 
 function sendNextBatch() {
-  if (!worker) return;
+  if (!worker || !currentGroupId) return;
 
   if (uploadQueue.length === 0) {
     worker.send({
-      type: "finish"
+      type: "finish",
+      groupId: currentGroupId
     });
 
     return;
@@ -50,18 +63,25 @@ function sendNextBatch() {
 
   worker.send({
     type: "batch",
+    groupId: currentGroupId,
     files: batch
   });
 }
 
-export function startUpload(files: UploadedFile[]) {
+export async function startUpload(files: UploadedFile[]) {
   uploadQueue = [...files];
   totalFiles = files.length;
   processedFiles = 0;
 
-  sendNextBatch();
+  try {
+    currentGroupId = uuid();
+    sendNextBatch();
+  } catch (error) {
+    console.error(error);
+    log.error(error);
+  }
 }
-function startWorker() {
+async function startWorker() {
   console.log("Starting backend worker");
   console.log("Worker:", getWorkerPath());
   worker = fork(getWorkerPath());
@@ -71,7 +91,9 @@ function startWorker() {
     config: {
       localDataDir: app.getPath("userData"),
       isPackaged: app.isPackaged,
-      resourcesPath: path.join(__dirname, "../../resources")
+      resourcesPath: app.isPackaged
+        ? process.resourcesPath
+        : path.join(process.cwd(), "resources")
     }
   });
 
@@ -90,6 +112,10 @@ function startWorker() {
         break;
 
       case "completed":
+        uploadQueue = [];
+        totalFiles = 0;
+        processedFiles = 0;
+        currentGroupId = null;
         mainWindow?.webContents.send("upload:completed");
         break;
 
@@ -159,7 +185,15 @@ function createWindow() {
   ipcMain.handle("upload:start", (_, files: UploadedFile[]) => {
     startUpload(files);
   });
+  protocol.handle("local", (request) => {
+    console.log(request.url);
 
+    const filePath = decodeURIComponent(request.url.replace("local://", ""));
+
+    console.log(filePath);
+
+    return net.fetch(`file://${filePath}`);
+  });
   if (app.isPackaged) {
     mainWindow.loadFile(getUIPath());
   } else {
@@ -198,7 +232,8 @@ app.whenReady().then(async () => {
   try {
     await initDatabase();
     createWindow();
-    startWorker();
+    await startWorker();
+    setupUploadProgressListener(worker!, mainWindow);
   } catch (error) {
     console.error(error);
     log.error(error);

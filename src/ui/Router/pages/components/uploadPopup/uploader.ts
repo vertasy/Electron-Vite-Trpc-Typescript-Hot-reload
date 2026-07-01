@@ -1,8 +1,9 @@
 import { useUploadStore } from "../../../../store/upload";
 
 export default async function MainUploadFiles() {
+  const { clear, setLoading, close } = useUploadStore.getState();
+  setLoading(true);
   const files = useUploadStore.getState().files;
-
   if (!files.length) {
     return {
       ok: false,
@@ -34,7 +35,9 @@ export default async function MainUploadFiles() {
   );
 
   await window.electron.startUpload(formattedFiles);
-
+  setLoading(false);
+  close();
+  clear();
   return {
     ok: true
   };
